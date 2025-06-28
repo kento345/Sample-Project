@@ -10,6 +10,8 @@ public class Enemy : MonoBehaviour
     /// </summary>  
     [SerializeField] private Player player_ = null;
 
+	bool isViewing = false;
+
     /// <summary>  
     /// ワールド行列   
     /// </summary>  
@@ -40,6 +42,7 @@ public class Enemy : MonoBehaviour
     {
 		Viewing();
 		Focus();
+		Tracking();
     }
 
 	//-----視野角-----
@@ -59,24 +62,42 @@ public class Enemy : MonoBehaviour
 		if (playerViewCos <= dot)
 		{
 			target_ = player_;
-			Debug.Log("100");
+			isViewing = true;
 		}
 	}
 
 	//-----フォーカス-----
 	void Focus()
 	{
-		var toTarget = (player_.transform.position - this.transform.position).normalized;
-		var foward   = transform.forward;
+		if (isViewing)
+		{
+			var toTarget = (player_.transform.position - this.transform.position).normalized;
+			var foward = transform.forward;
 
-		var dot = Vector3.Dot(foward,toTarget);
-		if (0.999f < dot) { return; }
+			var dot = Vector3.Dot(foward, toTarget);
+			if (0.999f < dot) { return; }
 
-		var radian = Mathf.Acos(dot);
+			var radian = Mathf.Acos(dot);
 
-		var cross = Vector3.Cross(foward,toTarget);
-		radian *= (cross.y / Mathf.Abs(cross.y));
+			var cross = Vector3.Cross(foward, toTarget);
+			radian *= (cross.y / Mathf.Abs(cross.y));
 
-		transform.rotation *= Quaternion.Euler(0, Mathf.Rad2Deg * radian, 0);
+			transform.rotation *= Quaternion.Euler(0, Mathf.Rad2Deg * radian, 0);
+		}
+	}
+	//--------追跡--------
+	void Tracking()
+	{
+		var dist = player_.transform.position - this.transform.position;
+		var length = Mathf.Sqrt((dist.x * dist.x) + (dist.y * dist.y) + (dist.z * dist.z));
+
+		if(isViewing)
+		{
+			var vector = dist / length;
+
+			vector *= (length / 20.0f);
+
+			transform.position += vector;
+		}
 	}
 }
