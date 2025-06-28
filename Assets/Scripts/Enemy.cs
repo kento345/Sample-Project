@@ -38,5 +38,45 @@ public class Enemy : MonoBehaviour
     /// </summary>  
     public void Update()
     {
+		Viewing();
+		Focus();
     }
+
+	//-----視野角-----
+	void Viewing()
+	{
+		var normalZ = new Vector3(0, 0, -1);
+		var playerForward = player_.worldMatrix * normalZ;
+
+		var playerViewCos = Mathf.Cos(player_.viewRadian);
+
+		var playerToEnemy = (this.transform.position - player_.transform.position).normalized;
+
+		var dot = Vector3.Dot(playerForward, playerToEnemy);
+
+		Player target_ = null;
+
+		if (playerViewCos <= dot)
+		{
+			target_ = player_;
+			Debug.Log("100");
+		}
+	}
+
+	//-----フォーカス-----
+	void Focus()
+	{
+		var toTarget = (player_.transform.position - this.transform.position).normalized;
+		var foward   = transform.forward;
+
+		var dot = Vector3.Dot(foward,toTarget);
+		if (0.999f < dot) { return; }
+
+		var radian = Mathf.Acos(dot);
+
+		var cross = Vector3.Cross(foward,toTarget);
+		radian *= (cross.y / Mathf.Abs(cross.y));
+
+		transform.rotation *= Quaternion.Euler(0, Mathf.Rad2Deg * radian, 0);
+	}
 }
